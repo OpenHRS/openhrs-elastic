@@ -48,9 +48,9 @@ for year in years:
                         
                         data = json.load(open(sec_path))
 
-                        doc["section_name"] = data["name"]
-                        doc["section_num"]  = data["number"]
-                        doc["section_text"] = data["text"]
+                        doc["sec_name"] = data["name"]
+                        doc["sec_num"]  = data["number"]
+                        doc["sec_text"] = data["text"]
 
                         payload.append(index)
                         payload.append(doc)
