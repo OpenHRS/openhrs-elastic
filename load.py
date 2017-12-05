@@ -1,14 +1,15 @@
-import os, requests, json
+import os, requests, json, copy, certifi
 from elasticsearch import Elasticsearch
 
-es = Elasticsearch([os.environ["ELASTIC_URL"]], verify_certs=True)
+es = Elasticsearch([os.environ["ELASTIC_URL"]], use_ssl=True, verify_certs=True, timeout=80, max_retries=10, retry_on_timeout=True)
 
 if not es.ping():
     raise ValueError("Connection failed")
 else:
     print("Successfully connected to: " + os.environ["ELASTIC_URL"] + "\n")
 
-years = ["hrs2002","hrs2003"]
+years    = ["hrs2002","hrs2003","hrs2004","hrs2005","hrs2006","hrs2007","hrs2008","hrs2009","hrs2010",
+            "hrs2011","hrs2012","hrs2013","hrs2014","hrs2015","hrs2016","hrscurrent"]
 base_url = "https://raw.githubusercontent.com/OpenHRS/openhrs-data/master/"
 
 for year in years:
@@ -23,7 +24,7 @@ for year in years:
     }
 
     print("begin load " + year)
-
+    
     for div in tree.json():
         for title in div["titles"]:
             for chapt in title["chapters"]:
@@ -47,17 +48,18 @@ for year in years:
                         sec_path += str(sec["number"]) + ".json"
                         
                         data = json.load(open(sec_path))
+                        doc2 = copy.deepcopy(doc)
 
-                        doc["sec_name"] = data["name"]
-                        doc["sec_num"]  = data["number"]
-                        doc["sec_text"] = data["text"]
+                        doc2["sec_name"] = data["name"]
+                        doc2["sec_num"]  = data["number"]
+                        doc2["sec_text"] = data["text"]
 
                         payload.append(index)
-                        payload.append(doc)
+                        payload.append(doc2)
                 else:
                     payload.append(index)
                     payload.append(doc)
     
     es.bulk(payload)
-
+    
     print("finish load " + year + "\n")
