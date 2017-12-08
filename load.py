@@ -1,5 +1,6 @@
 import os, requests, json, copy, certifi
 from elasticsearch import Elasticsearch
+from urllib.request import urlopen
 
 es = Elasticsearch([os.environ["ELASTIC_URL"]], use_ssl=True, verify_certs=True, timeout=80, max_retries=10, retry_on_timeout=True)
 
