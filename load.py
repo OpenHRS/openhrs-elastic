@@ -10,7 +10,7 @@ if not es.ping():
 else:
     print("Successfully connected to: " + os.environ["ELASTIC_URL"] + "\n")
 
-#years    = ["hrs2002"]
+#years    = ["hrs2002","hrs2003"]
 years    = ["hrs2002","hrs2003","hrs2004","hrs2005","hrs2006","hrs2007","hrs2008","hrs2009","hrs2010",
             "hrs2011","hrs2012","hrs2013","hrs2014","hrs2015","hrs2016","hrscurrent"]
 base_url = "https://raw.githubusercontent.com/OpenHRS/openhrs-data/master/"
@@ -21,8 +21,8 @@ for year in years:
 
     index = {
         "index" : {
-            "_index" : "hrs_statutes",
-            "_type" : year[3:]
+            "_index" : "hrs",
+            "_type" : "statutes"
         }
     }
 
@@ -68,7 +68,9 @@ for year in years:
 
     for i in range(0,len(payload), 2):
         if counter > 4000:
+            print("load temp: " + str(i))
             es.bulk(temp)
+
             counter = 0
             temp = []
 
@@ -77,6 +79,7 @@ for year in years:
 
         counter += 1
 
+    print("load temp: last")
     es.bulk(temp)
     
     print("finish load " + year + "\n")
