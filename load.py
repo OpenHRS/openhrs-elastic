@@ -2,15 +2,17 @@ import os, requests, json, copy, certifi
 from elasticsearch import Elasticsearch
 from urllib.request import urlopen
 
-es = Elasticsearch([os.environ["ELASTIC_URL"]], use_ssl=True, verify_certs=True, timeout=80, max_retries=10, retry_on_timeout=True)
+es = Elasticsearch([os.environ["ELASTIC_URL"]], use_ssl=True, ca_certs=certifi.where(), 
+    timeout=80, max_retries=10, retry_on_timeout=True)
 
 if not es.ping():
     raise ValueError("Connection failed")
 else:
     print("Successfully connected to: " + os.environ["ELASTIC_URL"] + "\n")
 
-years    = ["hrs2002","hrs2003","hrs2004","hrs2005","hrs2006","hrs2007","hrs2008","hrs2009","hrs2010",
-            "hrs2011","hrs2012","hrs2013","hrs2014","hrs2015","hrs2016","hrscurrent"]
+years    = ["hrs2002"]
+#years    = ["hrs2002","hrs2003","hrs2004","hrs2005","hrs2006","hrs2007","hrs2008","hrs2009","hrs2010",
+#            "hrs2011","hrs2012","hrs2013","hrs2014","hrs2015","hrs2016","hrscurrent"]
 base_url = "https://raw.githubusercontent.com/OpenHRS/openhrs-data/master/"
 
 for year in years:
@@ -61,6 +63,20 @@ for year in years:
                     payload.append(index)
                     payload.append(doc)
     
-    es.bulk(payload)
+    counter = 0
+    temp = []
+
+    for i in range(0,len(payload), 2):
+        if counter > 4000:
+            es.bulk(temp)
+            counter = 0
+            temp = []
+
+        temp.append(payload[i])
+        temp.append(payload[i+1])
+
+        counter += 1
+
+    ex.bulk(temp)
     
     print("finish load " + year + "\n")
