@@ -1,9 +1,15 @@
-import os, requests, json, copy, certifi
+import os, requests, json, copy, certifi, sys
 from elasticsearch import Elasticsearch
 from urllib.request import urlopen
 
-es = Elasticsearch([os.environ["ELASTIC_URL"]], use_ssl=True, ca_certs=certifi.where(), 
-    timeout=80, max_retries=10, retry_on_timeout=True)
+es = None
+
+if (len(sys.argv) == 2):
+    if (sys.argv[1] == 'ssl'):
+        es = Elasticsearch([os.environ["ELASTIC_URL"]], use_ssl=True, ca_certs=certifi.where(), 
+            timeout=80, max_retries=10, retry_on_timeout=True)
+else:
+    es = Elasticsearch([os.environ["ELASTIC_URL"]])
 
 if not es.ping():
     raise ValueError("Connection failed")
@@ -34,6 +40,7 @@ for year in years:
 
                 doc = {
                     "year": year[3:],
+                    "year_num": int(year[3:]) if year[3:] != "current" else 2017,
                     "div_name": div["name"],
                     "div_num": div["number"],
                     "title_name": title["name"],
@@ -56,6 +63,7 @@ for year in years:
                         doc2["sec_name"] = data["name"]
                         doc2["sec_num"]  = data["number"]
                         doc2["sec_text"] = data["text"]
+                        doc2["chapt_sec"] = chapt["number"] + "-" + data["number"]
 
                         payload.append(index)
                         payload.append(doc2)
